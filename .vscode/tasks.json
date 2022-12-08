@@ -8,9 +8,11 @@
 			"args": [
 				"-fdiagnostics-color=always",
 				"-g",
-				"${file}",
 				"-o",
-				"${fileDirname}/${fileBasenameNoExtension}",
+				"${workspaceFolder}/main",
+				"${workspaceFolder}/func.c",
+				"${workspaceFolder}/run.c",
+				"${workspaceFolder}/main.c",
 				"-lncurses",
 				"-lmenu"
 			],

@@ -1,38 +1,27 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ncurses.h>
+#include "func.h"
 
-#define CUSTOM_ARR_SIZE 4
 
-void printMenu(WINDOW *win, int i, int pos, char *def, char *out);
-void printBoard(WINDOW *win, char *board, int size);
 int main()
 {	
 
 
 	/* Initialize curses */
 	initscr();
-	//start_color();
     cbreak();
     noecho();
 	curs_set(0);
-	//keypad(stdscr, TRUE);
-	//init_pair(1, COLOR_RED, COLOR_BLACK);
+
+	ESCDELAY = 25;
 
 	WINDOW *window;
 
-	int height = 6;
-	int width = 20;
-	int starty = (LINES - height) / 2;	/* Calculating for a center placement */
-	int startx = (COLS - width) / 2;	/* of the window		*/
+	int starty = (LINES - START_MENU_HEIGHT) / 2;	/* Calculating for a center placement */
+	int startx = (COLS - START_MENU_WIDTH) / 2;	/* of the window		*/
 
 	int maxy,maxx;
 	getmaxyx(stdscr,maxy,maxx);
 
-    window= newwin(height,width,(maxy-height)/2,(maxx-width)/2);
-	box(window, 0, 0);
-	keypad(window,true);
+    window = createStartMenu(maxy,maxx);
 
 
 	char *menuarr[] = {"9x9", "13x13", "17x17","Custom - keyboard"};
@@ -44,19 +33,17 @@ int main()
 	int key,keyg,i,j;
 	int pos=0;
 
-	mvprintw((maxy-height)/2-3, (maxx-width)/2, "GO");
-
-	mvprintw((maxy-height)/2+7, (maxx-width)/2, "q - exit");
-	mvprintw((maxy-height)/2+6, (maxx-width)/2, "Enter - start");
-
-	mvprintw((maxy-height)/2-1, (maxx-width)/2, "Pick the board size");
+	printStartM(-3,"GO",maxy,maxx);
+	printStartM(-1,"Pick the board size",maxy,maxx);
+	printStartM(7,"q - exit",maxy,maxx);
+	printStartM(6,"Enter - start",maxy,maxx);
 
 	refresh();
 	wrefresh(window);
 
 	for(i=0;i<4;++i)
 	{
-		printMenu(window, i, pos, emptyarr, menuarr[i]);
+		printStart(window, i, pos, emptyarr, menuarr[i]);
 	}
 
 	while((key = wgetch(window)) != 'q')
@@ -94,13 +81,14 @@ int main()
 					customarr[customsiz]='\0';
 				}
 				break;
-			case 10:
+			case '\n':
 				if(pos==3 && customsiz<1) break;
+				
 				werase(window);
 				erase();
-				WINDOW *table;
-				int keyt=0;;
 				refresh();
+
+				int height;
 				switch(pos){
 					case 0:
 						height=9;
@@ -121,77 +109,28 @@ int main()
 						}
 						break;
 				}
-				int heights = height * 2 + 3;
-				table = newwin(heights, heights,(maxy-heights)/2, (maxx-heights)/3*2);
-				keypad(table, true);
-				char *board = (char*)malloc(height*height*sizeof(char));
-				memset(board,' ',height*height);
-				printBoard(table,board,height);
-				box(table, 0, 0);
-				wrefresh(table);
+				runtime(height,maxy,maxx);
+				erase();
 				refresh();
-
-				int posx=1,posy=1,pposx=1,pposy=1;
-
-				//wmove(table, posx*2, posy*2);
-				//waddch(table,'X');
-				mvwchgat(table,posx*2,posy*2,1,A_REVERSE,0,NULL);
-				wrefresh(table);
-
-				while((keyt = wgetch(table)) != 'q')
-				{
-					switch(keyt)
-					{
-						case KEY_UP:
-							if(posx>1)
-							{
-								--posx;
-							}
-							break;
-						case KEY_LEFT:
-							if(posy>1)
-							{
-								--posy;
-							}
-							break;
-						case KEY_DOWN:
-							if(posx<height)
-							{
-								++posx;
-							}
-							break;
-						case KEY_RIGHT:
-							if(posy<height)
-							{
-								++posy;
-							}
-							break;
-					}
-					//wattroff(table, A_BOLD);
-					mvwchgat(table,pposx*2,pposy*2,1,A_NORMAL,0,NULL);
-					pposx=posx;
-					pposy=posy;
-					mvwchgat(table,posx*2,posy*2,1,A_REVERSE,0,NULL);
-					wmove(table, posx*2, posy*2);
-					wrefresh(table);
-					refresh();
-				}
+				return 0;
 
 				break;
 		}
 
 		for(i=0;i<3;++i)
 		{
-			printMenu(window, i, pos, emptyarr, menuarr[i]);
+			printStart(window, i, pos, emptyarr, menuarr[i]);
 		}
 
 		if(pos==3) wattron(window, A_STANDOUT);
 		
 		if(customsiz!=0)
 		{
-			if(customsiz==3 && (((customarr[0]-48)*100)+((customarr[1]-48)*10)+customarr[2]-48>256))
+			if(customsiz==3 && customarrToInt(customarr)>256)
 			{
-				customarr[0]='2';	customarr[1]='5';	customarr[2]='6';
+				customarr[0]='2';	
+				customarr[1]='5';	
+				customarr[2]='6';
 			}
 			char prefix[8];
 			snprintf(prefix, sizeof(prefix), "%sx%s", customarr, customarr);
@@ -209,32 +148,4 @@ int main()
 }
 
 
-void printMenu(WINDOW *win, int i, int pos, char *def, char *out)
-{
-	mvwprintw(win, 4, 1, def);
-	if(i==pos) wattron(win, A_STANDOUT);
-	mvwprintw(win, i+1, 1, out);
-	wattroff(win, A_STANDOUT);
-}
 
-void printBoard(WINDOW *win, char *board, int size)
-{	
-	int i,j;
-	char *baseRow = {"  "};
-	char *baseRowEnd = {" "};
-	char *baseRowS = {"|"};
-	for(i=1;i<=size*2+1;i+=2)
-	{
-		for(j=1;j<=size*2+1;j+=2)
-		{
-			mvwprintw(win, i, j, baseRow);	
-		}
-		mvwprintw(win, i, size*2+1, baseRowEnd);
-		for(j=1;j<=size*2+1;j+=2)
-		{
-			mvwprintw(win, i+1, j, baseRowS);
-			mvwprintw(win, i+1, j+1, &board[size*(((i-1)/2))+(j-1)/2]);	
-		}
-		mvwprintw(win, i+1, size*2+1, baseRowS);
-	}
-}
