@@ -39,10 +39,10 @@ void runtime(int height, int maxy,int maxx)
 	refresh();
 
 	char blackTurn=1,stonePlaced=0;
-	char positionOut[7];
-	int location,lastX,lastY,lastLoc;
+	char positionOut[7],killOut[3];
+	int location,lastX,lastY,lastLoc,killCount;
 
-	while((keyt = wgetch(table)) != 'q')
+	while((keyt = wgetch(table)) != QUIT_KEY)
 	{
 		switch(keyt)
 		{
@@ -70,20 +70,21 @@ void runtime(int height, int maxy,int maxx)
 					++posy;
 				}
 				break;
-			case 'i':
+			case PUT_KEY:
 				location=arrLoc(posx,posy,height);
-				if(board[location]==' ' && !stonePlaced)
+				if(board[location]==EMPTY_CHAR && !stonePlaced)
 				{
 					if(blackTurn)
 					{
-						if(isValid(posx,posy,height,'@',logic,board,0))
+						if(isValid(table,posx,posy,height,BLACK_CHAR,logic,board,0))
 						{
-							board[location]='@';
-							waddch(table,'@');
+							board[location]=BLACK_CHAR;
+							waddch(table,BLACK_CHAR);
 							lastLoc=location;
 							lastX=posx;
 							lastY=posy;
 							stonePlaced=1;
+
 						}
 						else 
 						{
@@ -93,10 +94,10 @@ void runtime(int height, int maxy,int maxx)
 					}
 					else
 					{
-						if(isValid(posx,posy,height,'#',logic,board,0))
+						if(isValid(table,posx,posy,height,WHITE_CHAR,logic,board,0))
 						{
-							board[location]='#';
-							waddch(table,'#');
+							board[location]=WHITE_CHAR;
+							waddch(table,WHITE_CHAR);
 							lastLoc=location;
 							lastX=posx;
 							lastY=posy;
@@ -118,28 +119,34 @@ void runtime(int height, int maxy,int maxx)
 				if(blackTurn)
 				{
 					blackTurn=0;
-					stonePlaced=0;
+					killCount=isValid(table,lastX,lastY,height,WHITE_CHAR,logic,board,1);
 					printBoardM(side,16,1,BLANK16);
 					printBoardM(side,16,1,"White Turn");
+
 				}
 				else
 				{
 					blackTurn=1;
-					stonePlaced=0;
+					killCount=isValid(table,lastX,lastY,height,BLACK_CHAR,logic,board,1);
+
 					printBoardM(side,16,1,BLANK16);
 					printBoardM(side,16,1,"Black Turn");
 				}
+				stonePlaced=0;
+				snprintf(killOut, sizeof(killOut), "%d",killCount);
+				printBoardM(side,14,1,BLANK8);
+				printBoardM(side,14,1,killOut);	
 				break;
 			case 27: //ESC
 				if(stonePlaced)
 				{
 					stonePlaced=0;
 					wmove(table, lastX*2, lastY*2+1);
-					waddch(table,' ');
+					waddch(table,EMPTY_CHAR);
 					wrefresh(table);
 					refresh();
 
-					board[lastLoc]=' ';
+					board[lastLoc]=EMPTY_CHAR;
 
 					wmove(table, posx*2, posy*2+1);
 				}

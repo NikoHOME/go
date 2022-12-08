@@ -46,7 +46,7 @@ int main()
 		printStart(window, i, pos, emptyarr, menuarr[i]);
 	}
 
-	while((key = wgetch(window)) != 'q')
+	while((key = wgetch(window)) != QUIT_KEY)
 	{	
 		switch(key)
 		{

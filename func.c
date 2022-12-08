@@ -17,10 +17,10 @@ void printStartM(int offset,const char tab[], int maxy, int maxx)
 void printBoard(WINDOW *win, char *board, int size)
 {	
 	int i,j;
-	const char *baseRowCen = " ";
-	const char *baseRowCor = " ";
-	const char *baseRowEnd = " ";
-	const char *baseRowS = "|";
+	const char *baseRowCen = BASE_ROW_CEN;
+	const char *baseRowCor = BASE_ROW_COR;
+	const char *baseRowEnd = BASE_ROW_END;
+	const char *baseRowSep = BASE_ROW_SEP;
 	for(i=1;i<=size*2-1;i+=2)
 	{
 		for(j=1;j<=size*2-1;j+=2)
@@ -31,10 +31,10 @@ void printBoard(WINDOW *win, char *board, int size)
 		//mvwprintw(win, i, 1, baseRowEnd);
 		for(j=1;j<=size*2-1;j+=2)
 		{
-			mvwprintw(win, i+1, j+1, baseRowS);
+			mvwprintw(win, i+1, j+1, baseRowSep);
 			mvwprintw(win, i+1, j+2, &board[size*(((i-1)/2))+(j-1)/2]);	
 		}
-		mvwprintw(win, i+1, size*2+2, baseRowS);
+		mvwprintw(win, i+1, size*2+2, baseRowSep);
 	}
 	box(win, 0, 0);
 }
@@ -69,84 +69,94 @@ int isValid(VAL_FUNC_IMPORT, char kill)
 {
 	memset(logic,0,size*size);
 	int location=arrLoc(i,j,size);
+	logic[location]=1;
 	int killOut=0;
 
-	int out = dfs(VAL_FUNC_EXPORT, kill, &killOut);
 	if(kill) 
 	{
 		int basei=i,basej=j;
-		j=basej+1;
-		dfs(VAL_FUNC_EXPORT, kill,&killOut);
-		j=basej-1;
-		dfs(VAL_FUNC_EXPORT, kill,&killOut);
+
+		if(basej<size)
+		{
+			j=basej+1;
+			KILL_DFS_FUNC
+		}
+		if(basej>1)
+		{
+			j=basej-1; 
+			KILL_DFS_FUNC
+		}
 		j=basej;
-		i=basei+1;
-		dfs(VAL_FUNC_EXPORT, kill,&killOut);
-		i=basei-1;
-		dfs(VAL_FUNC_EXPORT, kill,&killOut);
-		return killOut;
+		if(basei<size)
+		{
+			i=basei+1;	
+			KILL_DFS_FUNC
+		}
+		if(basei>1)
+		{
+			i=basei-1;	
+			KILL_DFS_FUNC
+		}	
+		return killOut;	
 	}
-	else return dfs(VAL_FUNC_EXPORT, kill,&killOut);
+	else 
+		return dfs(VAL_FUNC_EXPORT, kill,&killOut);
 }
 
 int dfs(VAL_FUNC_IMPORT,char kill, int *killOut)
 {
 	int location=arrLoc(i,j,size);
-	logic[location]=1;
 	int basei=i,basej=j;
+	if(kill)
+		dfsCond(VAL_FUNC_EXPORT,kill,killOut);
+	logic[location]=1;
 	if(basej<size)
 	{
 		j=basej+1;
-		if (dfsCond(VAL_FUNC_EXPORT,kill,killOut))
-			return 1;
-		
+		DFS_COND_FUNC
 	}
 	if(basej>1)
 	{
 		j=basej-1; 
-		if (dfsCond(VAL_FUNC_EXPORT,kill,killOut))
-			return 1;
-		
+		DFS_COND_FUNC
 	}
 	j=basej;
 	if(basei<size)
 	{
 		i=basei+1;	
-		if (dfsCond(VAL_FUNC_EXPORT,kill,killOut))
-			return 1;
-	
+		DFS_COND_FUNC
 	}
 	if(basei>1)
 	{
 		i=basei-1;	
-		if (dfsCond(VAL_FUNC_EXPORT,kill,killOut))
-			return 1;
-		
+		DFS_COND_FUNC
 	}
-	if(kill)
-		return *killOut;
-	else
-		return 0;
+	return 0;
 }
 
 char dfsCond(VAL_FUNC_IMPORT, char kill, int *killOut)
 {
-	
+
 	int location=arrLoc(i,j,size);
-	
 	if(!logic[location]) 
 	{
 		if(board[location]==color)
 		{
 			if(kill)
 			{
-				board[location]=' ';
+				board[location]=EMPTY_CHAR;
+				wmove(win, i*2, j*2+1);
+				waddch(win,EMPTY_CHAR);
+				wrefresh(win);
 				++*killOut;
 			}
 			return dfs(VAL_FUNC_EXPORT,kill,killOut);
 		}
-		else if(board[location]==' ')
+		else if(board[location]==EMPTY_CHAR)
 		{
+			//FILE *ptr = fopen("debug.txt","a");
+			//fprintf(ptr,"%d %d %c .%c.\n",i,j,color,board[location]);
+			//fclose(ptr);
 			return 1;
 		}
 	}
