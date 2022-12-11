@@ -12,6 +12,7 @@
 				"${workspaceFolder}/main",
 				"${workspaceFolder}/func.c",
 				"${workspaceFolder}/run.c",
+				"${workspaceFolder}/handi.c",
 				"${workspaceFolder}/main.c",
 				"-lncurses",
 				"-lmenu"

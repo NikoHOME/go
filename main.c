@@ -18,17 +18,21 @@ int main()
 	int starty = (LINES - START_MENU_HEIGHT) / 2;	/* Calculating for a center placement */
 	int startx = (COLS - START_MENU_WIDTH) / 2;	/* of the window		*/
 
-	int maxy,maxx;
+	int maxy,maxx,maxBoardSize;
 	getmaxyx(stdscr,maxy,maxx);
+	
+	if(MAX_BOARD_SIZE_X>MAX_BOARD_SIZE_Y)
+		maxBoardSize=MAX_BOARD_SIZE_Y;
+	else
+		maxBoardSize=MAX_BOARD_SIZE_X;
+    
+	window = createMenu(maxy,maxx,START_MENU_HEIGHT,START_MENU_WIDTH);
+	wrefresh(window);
+	refresh();
 
-    window = createStartMenu(maxy,maxx);
-
-
-	char *menuarr[] = {"9x9", "13x13", "17x17","Custom - keyboard"};
-	char emptyarr[18];
-	memset(emptyarr,' ',18);
+	char *menuarr[] = {"9x9", "13x13", "19x19","Custom - keyboard"};
 	char customarr[CUSTOM_ARR_SIZE] = {'0','0','0','\0'};
-	int customsiz=0;
+	int customsiz=0,arrtoint;
 
 	int key,keyg,i,j;
 	int pos=0;
@@ -38,14 +42,14 @@ int main()
 	printStartM(7,"q - exit",maxy,maxx);
 	printStartM(6,"Enter - start",maxy,maxx);
 
-	refresh();
-	wrefresh(window);
 
 	for(i=0;i<4;++i)
 	{
-		printStart(window, i, pos, emptyarr, menuarr[i]);
+		printStart(window, i, pos, BLANK18, menuarr[i]);
 	}
-
+	box(window,0,0);
+	wrefresh(window);
+	refresh();
 	while((key = wgetch(window)) != QUIT_KEY)
 	{	
 		switch(key)
@@ -87,17 +91,29 @@ int main()
 				werase(window);
 				erase();
 				refresh();
-
+				char isHandi=handi(maxy,maxx);
+				if(isHandi==2) 
+				{
+					erase();
+					refresh();
+					return 0;
+				}
 				int height;
 				switch(pos){
 					case 0:
 						height=9;
+						if(height>maxBoardSize)
+							height=maxBoardSize;
 						break;
 					case 1:
 						height=13;
+						if(height>maxBoardSize)
+							height=maxBoardSize;
 						break;
 					case 2:
-						height=17;
+						height=19;
+						if(height>maxBoardSize)
+							height=maxBoardSize;
 						break;
 					case 3:
 						char *conv;
@@ -107,30 +123,50 @@ int main()
 							height*=10;
 							height+=(*conv-'0');
 						}
+						if(arrtoint<MIN_BOARD_SIZE) height=MIN_BOARD_SIZE;
 						break;
 				}
-				runtime(height,maxy,maxx);
+				customsiz=0;
+				pos=0;
 				erase();
 				refresh();
-				return 0;
+				if(!runtime(height,maxy,maxx,isHandi))
+					return 0;
+				
+    			window = createMenu(maxy,maxx,START_MENU_HEIGHT,START_MENU_WIDTH);
+				printStartM(-3,"GO",maxy,maxx);
+				printStartM(-1,"Pick the board size",maxy,maxx);
+				printStartM(7,"q - exit",maxy,maxx);
+				printStartM(6,"Enter - start",maxy,maxx);
 
+				refresh();
+				wrefresh(window);
+
+				for(i=0;i<4;++i)
+				{
+					printStart(window, i, pos, BLANK18, menuarr[i]);
+				}
+				wrefresh(window);
+				refresh();
 				break;
 		}
 
 		for(i=0;i<3;++i)
 		{
-			printStart(window, i, pos, emptyarr, menuarr[i]);
+			printStart(window, i, pos, BLANK18, menuarr[i]);
 		}
 
 		if(pos==3) wattron(window, A_STANDOUT);
 		
 		if(customsiz!=0)
 		{
-			if(customsiz==3 && customarrToInt(customarr)>256)
+			arrtoint=customarrToInt(customarr,customsiz);
+			if(customsiz>1 && arrtoint>maxBoardSize)
 			{
-				customarr[0]='2';	
-				customarr[1]='5';	
-				customarr[2]='6';
+				//customarr[0]='2';	
+				//customarr[1]='5';	
+				//customarr[2]='6';
+				customsiz=customarrToMax(customarr,maxBoardSize);
 			}
 			char prefix[8];
 			snprintf(prefix, sizeof(prefix), "%sx%s", customarr, customarr);
