@@ -1,5 +1,7 @@
 #include "func.h"
 
+
+
 char handi(int maxy,int maxx)
 {
     WINDOW *handi;
@@ -11,7 +13,7 @@ char handi(int maxy,int maxx)
     char *menuarr[] = {"Yes", "No"};
 
     printStartM(-1,"Start with handicap?",maxy,maxx);
-    
+    //Print options
     for(i=0;i<2;++i)
 	{
 		printStart(handi, i, pos, BLANK18, menuarr[i]);
@@ -28,6 +30,7 @@ char handi(int maxy,int maxx)
 				if(pos<1) ++pos;
 				break;
         }
+        //Print options
         for(i=0;i<2;++i)
 	    {
 		    printStart(handi, i, pos, BLANK18, menuarr[i]);
@@ -38,7 +41,7 @@ char handi(int maxy,int maxx)
     refresh();
     if(key==QUIT_KEY) 
         return 2;
-    if(!pos)
+    if(!pos) //if position equal to 1 Yes is selected
         return 1;
     return 0;
 }
@@ -58,7 +61,7 @@ char save(int maxy,int maxx,SAVE_FUNC_IMPORT)
     input[1]='\0';
     int namesize=0;
     char write=0;
-    while(!write && (key = wgetch(win)) != QUIT_KEY)
+    while(!write && (key = wgetch(win)))
 	{	
 		switch(key)
 		{
@@ -83,7 +86,7 @@ char save(int maxy,int maxx,SAVE_FUNC_IMPORT)
                     printStartM(-2,BLANK24,maxy,maxx);
 				}
 				break;
-            case '\n':
+            case CONFIRM_KEY:
                 snprintf(inputf,sizeof(inputf),"save/%s.save",input);
                 if(file=fopen(inputf, "r"))
                 {
@@ -104,6 +107,7 @@ char save(int maxy,int maxx,SAVE_FUNC_IMPORT)
         {
             return 0;
         }
+        //Create new struct to save data
         struct data data={SAVE_FUNC_EXPORT};
         file=fopen(inputf,"wb");
         fwrite(&data,sizeof(struct data),1,file);
@@ -121,13 +125,13 @@ char *load(int maxy,int maxx,LOAD_FUNC_IMPORT)
     win = createMenu(maxy,maxx,SAVE_MENU_HEIGHT,SAVE_MENU_WIDTH);
     printStartM(-1,"Enter file name letters/numbers",maxy,maxx);
     refresh();
-
-    char input[MAX_FILENAME_SIZE+1],inputf[MAX_FILENAME_SIZE+1];
+    
+    char input[MAX_FILENAME_SIZE+1],inputf[MAX_FILENAME_SIZE+1]; //+1 for \0 char
     input[0]=' ';
     input[1]='\0';
     int namesize=0;
     char write=0;
-    while(!write && (key = wgetch(win)) != QUIT_KEY)
+    while(!write && (key = wgetch(win)))
 	{	
 		switch(key)
 		{
@@ -154,7 +158,7 @@ char *load(int maxy,int maxx,LOAD_FUNC_IMPORT)
 				break;
             case '\n':
                 snprintf(inputf,sizeof(inputf),"save/%s.save",input);
-                if(!(file=fopen(inputf, "r")))
+                if(!(file=fopen(inputf, "r"))) 
                 {                
                     printStartM(-2,"File does not exist",maxy,maxx);
                     break;
@@ -162,6 +166,7 @@ char *load(int maxy,int maxx,LOAD_FUNC_IMPORT)
                 write=1;
                 break;
         }
+        //Print current text
         mvwprintw(win, 2, 1, BLANK32);
         mvwprintw(win, 2, 1, input);
         refresh();
@@ -173,6 +178,7 @@ char *load(int maxy,int maxx,LOAD_FUNC_IMPORT)
     {
         return 0;
     }
+    //Create new struct and resized array to load data
     struct data data;
     file=fopen(inputf,"rb");
     fread(&data,sizeof(struct data),1,file);
@@ -183,7 +189,7 @@ char *load(int maxy,int maxx,LOAD_FUNC_IMPORT)
     fread(boardNew,sizeof(char),(data.height)*(data.height),file);
     
     fclose(file);
-
+    //Overwrite all the data
     *height=data.height;
     *posx=data.posx;
     *posy=data.posy;

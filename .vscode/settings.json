@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "ncurses.h": "c",
-        "func.h": "c",
-        "string.h": "c"
-    }
-}

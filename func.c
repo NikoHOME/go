@@ -1,5 +1,6 @@
 #include "func.h"
 
+//Print basic menu
 void printStart(WINDOW *win, int i, int pos, const char def[],char *out)
 {
 	mvwprintw(win, 4, 1, def);
@@ -8,6 +9,7 @@ void printStart(WINDOW *win, int i, int pos, const char def[],char *out)
 	wattroff(win, A_STANDOUT);
 }
 
+// Print string in the middle
 void printStartM(int offset,const char tab[], int maxy, int maxx)
 {
     mvprintw((maxy-START_MENU_HEIGHT)/2+offset, (maxx-START_MENU_WIDTH)/2, tab);
@@ -22,43 +24,38 @@ void printBoard(WINDOW *win, char *board, int size)
 	static const char *baseRowCor = BASE_ROW_COR;
 	static const char *baseRowEnd = BASE_ROW_END;
 	static const char *baseRowSep = BASE_ROW_SEP;
-	//FILE *ptr = fopen("debug.txt","a");
-	mvwprintw(win, 1, 1, BLANK32);
-	for(i=1;i<=size*2-1;i+=2)
+	mvwprintw(win, 1, 1, BLANK32); //Clears rows/cells
+	for(i=1;i<=size*2-1;i+=2)		
 	{
 		mvwprintw(win, i, 1, BLANK32);
 		mvwprintw(win, i+1, 1, BLANK32);
-		for(j=1;j<=size*2-1;j+=2)
+		for(j=1;j<=size*2-1;j+=2) //Print first row
 		{
 			mvwprintw(win, i, j+1, baseRowCen);
 			mvwprintw(win, i, j+2, baseRowCor);	
 		}
-		for(j=1;j<=size*2-1;j+=2)
+		for(j=1;j<=size*2-1;j+=2)	//Print second row
 		{
 			mvwprintw(win, i+1, j+1, baseRowSep);
 			mvwprintw(win, i+1, j+2, &board[size*(((i-1)/2))+(j-1)/2]);	
-			//fprintf(ptr,"%c %d",board[size*(((i-1)/2))+(j-1)/2],size*(((i-1)/2))+(j-1)/2);
 		}
 		wrefresh(win);
 		refresh();
 		mvwprintw(win, i+1, size*2+2, baseRowSep);
 		mvwprintw(win, i+1, size*2+3, BLANK1);
-		//fprintf(ptr,"\n");
 	}
 	mvwprintw(win, size*2+1, 1, BLANK32);
 	box(win, 0, 0);
-	//fprintf(ptr,"\n");
-	//fclose(ptr);
 }
 
-
+//Print in a window
 void printBoardM(WINDOW *win, int offsety, int offsetx,const char tab[])
 {
     mvwprintw(win,offsety,offsetx,tab);
 
 }
 
-
+//Create a new centered window 
 WINDOW* createMenu(int maxy,int maxx,int height,int width)
 {
     WINDOW *window = newwin(height,width,(maxy-height)/2,(maxx-width)/2);
@@ -66,13 +63,14 @@ WINDOW* createMenu(int maxy,int maxx,int height,int width)
     keypad(window,true);
     return window;
 }
-
+//Convert string to int
 int customarrToInt(char tab[CUSTOM_ARR_SIZE],int customsiz)
 {
 	if(customsiz==3) return ((tab[0]-'0')*100)+((tab[1]-'0')*10)+tab[2]-'0';
 	if(customsiz==2) return ((tab[0]-'0')*10)+tab[1]-'0';
 	return tab[0]-'0';
 }
+//Resize int value of string to maxsize
 int customarrToMax(char *tab,int maxsize)
 {
 	int val=maxsize,i,div=1,out=1;
@@ -86,11 +84,13 @@ int customarrToMax(char *tab,int maxsize)
 	tab[i]='\0';
 	return out;
 }
+//Calculate 2D location in 1D array
 int arrLoc(int i,int j,int offset)
 {
 	return (i-1)*offset+j-1;
 }
-
+/*If on the last and current turn 1 stone was captured 
+and the stones were placed next to each other*/
 char isKo(int killCond,int killCondLast,int posx,int posy,int lastX, int lastY)
 {
 	if(killCond!=killCondLast) return 0;
@@ -101,15 +101,17 @@ char isKo(int killCond,int killCondLast,int posx,int posy,int lastX, int lastY)
 }
 
 
+// kill = 0  Check if stone has a breath
+// kill = 1  Capture enemy stones 
+// kill = 2  Check how many stones you will capture
 int isValid(VAL_FUNC_IMPORT, char kill)
 {
 	memset(logic,0,size*size);
 	int location=arrLoc(i,j,size);
 	int killOut=0;
-	if(kill) 
+	if(kill) //for every orthogonally ajacent cell execute dfsCond() if !isValid
 	{
 		int basei=i,basej=j;
-		
 		if(basej<size)
 		{
 			j=basej+1;
@@ -136,7 +138,7 @@ int isValid(VAL_FUNC_IMPORT, char kill)
 	else 
 		return dfs(VAL_FUNC_EXPORT, kill,&killOut);
 }
-
+//Set the cell as visited and execute orthogonally dfsCond()
 int dfs(VAL_FUNC_IMPORT,char kill, int *killOut)
 {
 	int location=arrLoc(i,j,size);
@@ -167,13 +169,10 @@ int dfs(VAL_FUNC_IMPORT,char kill, int *killOut)
 	}
 	return 0;
 }
-
-
-
-
+/*Check if cell has a stone of the same color and execute dfs()
+or capture, or increase the number of capturable stones */
 char dfsCond(VAL_FUNC_IMPORT, char kill, int *killOut)
 {
-
 	int location=arrLoc(i,j,size);
 	if(!logic[location]) 
 	{

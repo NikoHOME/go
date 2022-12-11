@@ -10,6 +10,7 @@
 #define VAL_FUNC_IMPORT WINDOW *win, int i, int j, int size, char color, char *logic, char *board
 #define VAL_FUNC_EXPORT win, i, j, size, color, logic, board
 
+//All important variables to save/load
 #define SAVE_FUNC_IMPORT \
     char *board, int height,\
     int posx, int posy, int pposx, int pposy,\
@@ -33,7 +34,7 @@
     int lastX; int lastY; int lastLoc; int killCount;\
     float blackScore; float whiteScore;\
     int killCond; int killCondLast;   
-
+//Import pointers to change them inside a funtion
 #define LOAD_FUNC_IMPORT \
     char *board, int *height,\
     int *posx, int *posy, int *pposx, int *pposy,\
@@ -56,37 +57,44 @@
 #define CUSTOM_ARR_SIZE (4)     //Array size for custom board size
 #define SCORE_ARR_SIZE (14)
 
-#define MAX_BOARD_SIZE_Y (LINES/2-1)
+#define MAX_BOARD_SIZE_Y (LINES/2-1) //Max window size based on terminal
 #define MAX_BOARD_SIZE_X (COLS/4)
 #define MIN_BOARD_SIZE (2)
 #define MAX_FILENAME_SIZE (32)
 
 #define START_MENU_HEIGHT (6)   //Menu sizes
 #define START_MENU_WIDTH (20)
-
 #define BOARD_MENU_HEIGHT (20)  
 #define BOARD_MENU_WIDTH (30)
-
 #define HANDI_MENU_HEIGHT (6)   
 #define HANDI_MENU_WIDTH  (20)
-
 #define SAVE_MENU_HEIGHT (6)
-#define SAVE_MENU_WIDTH  (40)
+#define SAVE_MENU_WIDTH  (40)  
 
-#define BLANK8 "        "           //Strings for board clearning
+#define BOARD_POS_X (maxy-heights)/2 //Game menus left corner coordinate (the rest always centered)
+#define BOARD_POX_Y (maxx/2)
+#define BOARD_MENU_POS_Y (maxx/2-BOARD_MENU_WIDTH*3/2)
+#define BOARD_MENU_POS_X (maxy-BOARD_MENU_HEIGHT)/2
+
+#define BLANK1  " " //Strings for board clearning
+#define BLANK8  "        "           
 #define BLANK16 "                "
-#define BLANK18 "                  \0"
+#define BLANK18 "                  \0" // for printstart()
 #define BLANK24 "                        "
-#define BLANK28 "                            "
+#define BLANK28 "                            " // for side game menu 
 #define BLANK32 "                                "
-#define BLANK1  " "
 
-#define BLACK_CHAR '@'  //Chars used on the board
+#define BLACK_CHAR '@'  //Chars used as board colors
 #define WHITE_CHAR '#'
 #define EMPTY_CHAR ' '
 
 #define QUIT_KEY 'q'    //Control Keys
 #define PUT_KEY 'i'
+#define NEW_GAME_KEY 'n'
+#define SAVE_KEY 's'
+#define LOAD_KEY 'l'
+#define CONFIRM_KEY '\n'
+#define UNDO_KEY (27)
 
 #define BASE_ROW_CEN " "    //Board Decorations
 #define BASE_ROW_COR " "
@@ -108,7 +116,7 @@
     if (dfsCond(VAL_FUNC_EXPORT,kill,killOut))\
         return 1;\
 }
-
+//Board movement in a switch
 #define BOARD_MOVE_SWITCH {\
     case KEY_UP:\
         if(posx>1)\
@@ -135,7 +143,7 @@
         }\
         break;\
 }
-
+//Move cursor and add highlight
 #define BOARD_MOVE_CURS {\
     mvwchgat(table,pposx*2,pposy*2+1,1,A_NORMAL,0,NULL);\
 	pposx=posx;\
@@ -143,7 +151,7 @@
 	mvwchgat(table,posx*2,posy*2+1,1,A_REVERSE,0,NULL);\
 	wmove(table, posx*2, posy*2+1);\
 }
-
+//Redraw entire game screen
 #define REDRAW {\
     heights = height * 2 + BOARD_BASE_PADDING;\
     logic = realloc(logic,(height)*(height)*sizeof(char));\
@@ -209,3 +217,19 @@ struct data
 {
     SAVE_FUNC_STRUCT
 };
+
+//Debug function
+/*
+FILE *ptr = fopen("debug.txt","a");
+int temp1,temp2;
+for(temp1=0;temp1<height;++temp1)
+{
+    for(temp2=0;temp2<height;++temp2)
+    {
+        fprintf(ptr,"%d ",board[temp1*height+temp2]);
+    }
+    fprintf(ptr,"\n");
+}
+fprintf(ptr,"\n");
+fclose(ptr);
+*/

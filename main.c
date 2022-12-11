@@ -3,24 +3,19 @@
 
 int main()
 {	
-
-
-	/* Initialize curses */
+	//Start ncurses and initialize modes 
 	initscr();
     cbreak();
     noecho();
 	curs_set(0);
-
+	//Turn off ESC dealy
 	ESCDELAY = 25;
 
 	WINDOW *window;
-
-	int starty = (LINES - START_MENU_HEIGHT) / 2;	/* Calculating for a center placement */
-	int startx = (COLS - START_MENU_WIDTH) / 2;	/* of the window		*/
-
+	//maxBoardsize used in custom board size
 	int maxy,maxx,maxBoardSize;
 	getmaxyx(stdscr,maxy,maxx);
-	
+
 	if(MAX_BOARD_SIZE_X>MAX_BOARD_SIZE_Y)
 		maxBoardSize=MAX_BOARD_SIZE_Y;
 	else
@@ -32,17 +27,18 @@ int main()
 
 	char *menuarr[] = {"9x9", "13x13", "19x19","Custom - keyboard"};
 	char customarr[CUSTOM_ARR_SIZE] = {'0','0','0','\0'};
+	//customsiz - size of custom board size array 
+	//arrtoint - custom board size array to intiger
 	int customsiz=0,arrtoint;
 
-	int key,keyg,i,j;
+	int key,i,j;
 	int pos=0;
-
+	//Print outside the main window
 	printStartM(-3,"GO",maxy,maxx);
 	printStartM(-1,"Pick the board size",maxy,maxx);
 	printStartM(7,"q - exit",maxy,maxx);
 	printStartM(6,"Enter - start",maxy,maxx);
-
-
+	//Print menu options
 	for(i=0;i<4;++i)
 	{
 		printStart(window, i, pos, BLANK18, menuarr[i]);
@@ -77,20 +73,24 @@ int main()
 					customarr[customsiz]='\0';
 				}
 				break;
-			case '0':
-				if(customsiz!=0 && pos==3 && customsiz<3)
+			case '0': 
+				if(customsiz!=0 && pos==3 && customsiz<3) //Do not add if there is not a digit other than 0
 				{
 					customarr[customsiz]=key;
 					++customsiz;
 					customarr[customsiz]='\0';
 				}
 				break;
-			case '\n':
+			case CONFIRM_KEY:
 				if(pos==3 && customsiz<1) break;
 				
 				werase(window);
 				erase();
 				refresh();
+				//Ask if to start with handicap
+				//return 2 = quit
+				//return 1 = handicap
+				//return 0 = no handicap
 				char isHandi=handi(maxy,maxx);
 				if(isHandi==2) 
 				{
@@ -99,6 +99,7 @@ int main()
 					return 0;
 				}
 				int height;
+				//Calculate board size
 				switch(pos){
 					case 0:
 						height=9;
@@ -130,9 +131,12 @@ int main()
 				pos=0;
 				erase();
 				refresh();
+				//Start the game
+				//return 1 - new game
+				//return 0 - quit
 				if(!runtime(height,maxy,maxx,isHandi))
 					return 0;
-				
+				//Redraw menu
     			window = createMenu(maxy,maxx,START_MENU_HEIGHT,START_MENU_WIDTH);
 				printStartM(-3,"GO",maxy,maxx);
 				printStartM(-1,"Pick the board size",maxy,maxx);
@@ -150,24 +154,19 @@ int main()
 				refresh();
 				break;
 		}
-
+		//Print basic options
 		for(i=0;i<3;++i)
 		{
 			printStart(window, i, pos, BLANK18, menuarr[i]);
 		}
-
-		if(pos==3) wattron(window, A_STANDOUT);
+		//Print custom size
+		if(pos==3) wattron(window, A_STANDOUT); //If on option 3 highlight
 		
 		if(customsiz!=0)
 		{
-			arrtoint=customarrToInt(customarr,customsiz);
+			arrtoint=customarrToInt(customarr,customsiz); //check if not over the max size
 			if(customsiz>1 && arrtoint>maxBoardSize)
-			{
-				//customarr[0]='2';	
-				//customarr[1]='5';	
-				//customarr[2]='6';
 				customsiz=customarrToMax(customarr,maxBoardSize);
-			}
 			char prefix[8];
 			snprintf(prefix, sizeof(prefix), "%sx%s", customarr, customarr);
 			mvwprintw(window, 4, 1, prefix);

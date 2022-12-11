@@ -15,7 +15,6 @@
 				"${workspaceFolder}/handi.c",
 				"${workspaceFolder}/main.c",
 				"-lncurses",
-				"-lmenu"
 			],
 			"options": {
 				"cwd": "${fileDirname}"
